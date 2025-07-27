@@ -16,9 +16,12 @@ jupyter:
 import os
 import pandas as pd 
 
-def fs_tree(root, mc=200):
+def fs_tree(root, max_count=200):
+    '''traverse folder structure using os.walk and return a json file describing each 
+       folder, its size, and the file count up to a maximum threshold'''
+    
     results = {}
-    results['file_count_max'] = mc
+    results['file_count_max'] = max_count
     results['root'] = root
     for (dirpath, dirnames, filenames) in os.walk(root):
         parts = dirpath.split(os.sep)
@@ -33,7 +36,7 @@ def fs_tree(root, mc=200):
             curr['disk_usage'] = assess_disk_usage(dirpath)
             curr['disk_percent'] = curr['disk_usage']/results[root]['disk_usage']
                 
-            curr['file_count'] = file_count(dirpath, mc)
+            curr['file_count'] = file_count(dirpath, max_count)
             curr['depth'] = len([ i for i in parts if parts !='']) -1
             
             if curr['depth'] < 1:
@@ -46,6 +49,8 @@ def fs_tree(root, mc=200):
 # skip hidden folders 
 
 def assess_disk_usage(location):
+    '''helper func for fs_tree to calculate a folder's size in bytes
+       returns int total_size_bytes'''
     
     total_size_bytes = 0
     
@@ -63,6 +68,7 @@ def assess_disk_usage(location):
     return total_size_bytes
 
 def file_count(location, max_count=200):
+    '''helper func for fs_tree to count files up to max_count ... returns int c (count) ''' 
     c = 0
     for root, dirs, files in os.walk(location, topdown=True):
         for f in files:
@@ -74,7 +80,10 @@ def file_count(location, max_count=200):
         return c
 
 def flatten_tree_recursive(tree_data, rows =[], meta = ['this_folder', 'disk_usage', 'disk_percent', 'file_count', 'depth', 'parent']):
-    r = rows
+    '''converts fs_tree json output to flat structure for pandas snapshot
+       returns list rows_current (rows for DataFrame)''' 
+    
+    rows_current = rows
     for i in tree_data.keys():
         if i not in meta:
                        
@@ -83,9 +92,9 @@ def flatten_tree_recursive(tree_data, rows =[], meta = ['this_folder', 'disk_usa
                 row = []
                 for k in meta:
                     row.append(this_dict[k])
-                r.append(row)
-                r = flatten_tree_recursive(this_dict, rows=r)
-    return r
+                rows_current.append(row)
+                rows_current = flatten_tree_recursive(this_dict, rows=rows_current)
+    return rows_current
 ```
 
 ```python

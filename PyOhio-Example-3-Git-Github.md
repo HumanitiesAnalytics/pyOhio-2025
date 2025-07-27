@@ -20,6 +20,9 @@ import time
 
 ```python
 def get_repos(root):
+    '''traverse contents of a target folder and return top-level folders 
+       containing git repositories ... returns a list of folder names'''
+    
     if root.startswith('/'):
         root_folder = root.split('/')[-1]
         preamble = root.replace('/'+root_folder, '/')
@@ -33,6 +36,9 @@ def get_repos(root):
     return gits
 
 def get_status(repo_path):
+    '''passes 'git status' command via subprocess to assess current repo state
+       ... returns result of subprocess.run '''
+    
     command = f"""cd {repo_path}
     git status
     cd"""
@@ -40,6 +46,9 @@ def get_status(repo_path):
     return r
 
 def pull_push(repo_path, msg='adding updated files'):
+    '''passes git commands via subprocess to pull from origin, add, commit, and 
+       push to origin ... returns result of subprocess.run '''
+    
     command = f"""cd {repo_path}
     git pull origin main
     git add . 
@@ -52,6 +61,7 @@ def pull_push(repo_path, msg='adding updated files'):
 ```
 
 ```python
+# modify this path to locate a folder on your system containing git repos 
 root_folder = '../../teaching'
 repos = get_repos(root_folder)
 len(repos) 
